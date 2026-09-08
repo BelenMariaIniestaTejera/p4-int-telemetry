@@ -1,0 +1,9 @@
+table_add tb_int_transit configure_transit => 1 1500
+
+# Puertos de s1: 1=hacia s3, 2=hacia s4, 3=hacia s5 (spine, sin hosts)
+table_add tb_forward send_to_port 00:00:00:00:01:01&&&0xFFFFFFFFFFFF 0&&&0x000 => 1 0
+table_add tb_forward send_to_port 00:00:00:00:02:02&&&0xFFFFFFFFFFFF 0&&&0x000 => 1 0
+table_add tb_forward send_to_port 00:00:00:00:03:03&&&0xFFFFFFFFFFFF 0&&&0x000 => 2 0
+table_add tb_forward send_to_port 00:00:00:00:04:04&&&0xFFFFFFFFFFFF 0&&&0x000 => 2 0
+table_add tb_forward send_to_port 00:00:00:00:05:05&&&0xFFFFFFFFFFFF 0&&&0x000 => 3 0
+table_add tb_forward send_to_port 00:00:00:00:06:06&&&0xFFFFFFFFFFFF 0&&&0x000 => 2 0

@@ -1,0 +1,19 @@
+table_add tb_int_sink configure_sink 1 => 5
+table_add tb_int_sink configure_sink 2 => 5
+mirroring_add 1 5
+table_add tb_int_reporting send_report => f6:61:c0:6a:00:03 10.0.0.4 f6:61:c0:6a:14:21 10.0.0.254 6000
+
+table_add tb_int_transit configure_transit => 4 1500
+
+# Puertos de s4: 1=h3, 2=h4, 3=hacia s1, 4=hacia s2
+table_add tb_forward send_to_port 00:00:00:00:03:03&&&0xFFFFFFFFFFFF 0&&&0x000 => 1 0
+table_add tb_forward send_to_port 00:00:00:00:04:04&&&0xFFFFFFFFFFFF 0&&&0x000 => 2 0
+table_add tb_forward send_to_port 00:00:00:00:01:01&&&0xFFFFFFFFFFFF 1&&&0x1FF => 3 0
+table_add tb_forward send_to_port 00:00:00:00:01:01&&&0xFFFFFFFFFFFF 2&&&0x1FF => 4 0
+table_add tb_forward send_to_port 00:00:00:00:02:02&&&0xFFFFFFFFFFFF 1&&&0x1FF => 3 0
+table_add tb_forward send_to_port 00:00:00:00:02:02&&&0xFFFFFFFFFFFF 2&&&0x1FF => 4 0
+table_add tb_forward send_to_port 00:00:00:00:05:05&&&0xFFFFFFFFFFFF 1&&&0x1FF => 3 0
+table_add tb_forward send_to_port 00:00:00:00:05:05&&&0xFFFFFFFFFFFF 2&&&0x1FF => 4 0
+table_add tb_forward send_to_port 00:00:00:00:06:06&&&0xFFFFFFFFFFFF 1&&&0x1FF => 3 0
+table_add tb_forward send_to_port 00:00:00:00:06:06&&&0xFFFFFFFFFFFF 2&&&0x1FF => 4 0
+table_add tb_forward send_to_port 00:00:00:00:06:06&&&0xFFFFFFFFFFFF 3&&&0x1FF => 4 0

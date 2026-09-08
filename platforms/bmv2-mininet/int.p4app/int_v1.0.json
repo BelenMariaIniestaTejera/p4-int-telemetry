@@ -1,0 +1,11 @@
+{
+	"program": "p4src/int_v1.0/int.p4",
+	"language": "p4-16",
+	"targets": {
+		"custom": {
+			"program": "topo.py --int_version=1.0 --influx 172.17.0.1:8086"
+		}
+	}
+}
+
+

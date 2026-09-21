@@ -4,13 +4,13 @@ Este proyecto amplía y adapta una implementación existente de **In-band Networ
 
 El trabajo incluye, entre otras aportaciones, la incorporación de soporte para tráfico ICMP, el rediseño del mecanismo de gestión de metadatos acumulados, la ampliación de la topología de red a un escenario *leaf-spine* con tolerancia a fallos y selección de caminos, la extensión de la información de telemetría INT con un nuevo campo de metadatos y la corrección de una anomalía en el cálculo de la latencia por salto.
 
-## Acknowledgements / Base project
+## Reconocimientos y proyecto de partida
 
 Este trabajo parte del repositorio [`int-platforms`](https://github.com/GEANT-DataPlaneProgramming/int-platforms), desarrollado por GÉANT Data Plane Programming, que proporciona una implementación de INT para plataformas con plano de datos programable como BMv2 y Tofino.
 
 Este repositorio incluye únicamente el código base necesario para el desarrollo del trabajo, adaptado y ampliado con las funcionalidades implementadas en este TFM. La estructura del repositorio ha sido reorganizada específicamente para presentar los componentes utilizados y desarrollados durante el proyecto.
 
-## Repository structure
+## Estructura del repositorio
 
 ```text
 p4-int-telemetry/
@@ -60,7 +60,7 @@ p4-int-telemetry/
 
 Los escenarios de red se encuentran separados de la implementación P4. Cada escenario contiene su propia topología (`topo.txt`) y los ficheros `commands` necesarios para configurar las tablas de los switches correspondientes.
 
-## Requirements
+## Requisitos
 
 Para la ejecución y análisis del prototipo se utilizan las siguientes herramientas:
 
@@ -73,7 +73,7 @@ Para la ejecución y análisis del prototipo se utilizan las siguientes herramie
 - [Wireshark](https://www.wireshark.org/) con soporte para plugins Lua
 - Docker, utilizado para el despliegue de algunos componentes del entorno
 
-## Quick start
+## Inicio rápido
 
 ### 1. Seleccionar el escenario
 
@@ -140,7 +140,7 @@ python3 scripts/monitor_link.py
 
 También se incluye `watchdog_completo.sh` para la supervisión de los componentes utilizados en el entorno de monitorización.
 
-## Features implemented
+## Funcionalidades implementadas
 
 Las principales funcionalidades incorporadas o modificadas durante el desarrollo del TFM son:
 
@@ -155,11 +155,11 @@ Las principales funcionalidades incorporadas o modificadas durante el desarrollo
 - **Disector de Wireshark para reportes INT**, utilizado para facilitar la interpretación directa de la información de telemetría.
 - **Visualización mediante Grafana**, incluyendo la representación de información obtenida a partir de los reportes INT.
 
-## Known issues
+## Limitaciones conocidas
 
 - **Tráfico TCP**: aunque la implementación de partida ya incluía el parseo de tráfico TCP y durante el trabajo se configuró su selección como tráfico monitorizable, las pruebas realizadas mostraron que la instrumentación mediante INT no se aplicaba de forma fiable a los segmentos de datos TCP. La causa raíz no pudo determinarse de forma concluyente, por lo que su soporte completo queda como línea de trabajo futura.
 
-## Author
+## Autor
 
 **Belén María Iniesta Tejera**  
 Trabajo Fin de Máster  

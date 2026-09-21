@@ -1,55 +1,167 @@
-Common P4-based INT implementation for bmv2-mininet and Tofino platforms.
-===========================================================================
-This is a P4 implementation of the [In-Band Network Telemetry](https://p4.org/specs/). 
+# P4 INT Telemetry
 
-The main purpose of this repository is to develop and maintain a P4 implementation of INT common to various programmable platforms. So far, we managed to implement a common implementation in the P4 language for the bmv2-mininet environment and Tofino processors. Much of the INT code is common to both platforms, however there are places in the P4 code that require specific implementations for each platform. This differentiation has been accomplished using preprocessor directives for conditional compilation.The INT implementations for platforms such as DPDK and FPGA, due to numerous limitations, differ too much and are currently being developed in another code repositories. In the future, we hope to integrate all P4 code for INT into one common repository maintained and developed simultaneously for all plaftorms.
+Este proyecto amplía y adapta una implementación existente de **In-band Network Telemetry (INT)** basada en P4 y BMv2. Ha sido desarrollado como parte del Trabajo Fin de Máster *"Desarrollo y análisis de una solución de In-Band Network Telemetry en redes con plano de datos programable"*, del Máster Universitario en Ingeniería de Redes y Servicios Telemáticos de la Universidad Politécnica de Madrid.
 
-The INT implementation and testing was done within the GEANT Data Plane Programmibilty activity:
-* https://wiki.geant.org/display/NETDEV/DPP
+El trabajo incluye, entre otras aportaciones, la incorporación de soporte para tráfico ICMP, el rediseño del mecanismo de gestión de metadatos acumulados, la ampliación de la topología de red a un escenario *leaf-spine* con tolerancia a fallos y selección de caminos, la extensión de la información de telemetría INT con un nuevo campo de metadatos y la corrección de una anomalía en el cálculo de la latencia por salto.
 
-All INT code is under the Apache 2.0 licence.
+## Acknowledgements / Base project
 
+Este trabajo parte del repositorio [`int-platforms`](https://github.com/GEANT-DataPlaneProgramming/int-platforms), desarrollado por GÉANT Data Plane Programming, que proporciona una implementación de INT para plataformas con plano de datos programable como BMv2 y Tofino.
 
-In-Band Network Telemetry
-------
-In-Band Network Telemetry (INT)  is specified by the P4 language community and can provide very detailed information on network behavior by inserting a small amount of information directly inside packets passing through network devices where INT functionality is enabled, essentially adding probing functionality to potentially every packet, including customer traffic. 
-This makes INT a very powerful debugging tool, capable of measuring and recording the 'experience' of each tagged packet sent in the network.
+Este repositorio incluye únicamente el código base necesario para el desarrollo del trabajo, adaptado y ampliado con las funcionalidades implementadas en este TFM. La estructura del repositorio ha sido reorganizada específicamente para presentar los componentes utilizados y desarrollados durante el proyecto.
 
-![INT workflow](docs/int-workflow.png)
+## Repository structure
 
+```text
+p4-int-telemetry/
+├── p4/                              # Programa P4 modificado y ampliado
+│   ├── int.p4
+│   └── include/
+│       ├── forward.p4
+│       ├── headers.p4
+│       ├── int_report.p4
+│       ├── int_sink.p4
+│       ├── int_source.p4
+│       ├── int_transit.p4
+│       ├── parser.p4
+│       └── port_forward.p4
+│
+├── escenarios/                      # Topologías y configuración de los switches
+│   ├── original/                    # Topología de partida de tres switches
+│   │   ├── topo.txt
+│   │   └── commands/
+│   │       ├── commands1.txt
+│   │       ├── commands2.txt
+│   │       └── commands3.txt
+│   │
+│   └── leafspine/                  # Topología ampliada de cinco switches
+│       ├── topo.txt
+│       └── commands/
+│           ├── commands1.txt
+│           ├── commands2.txt
+│           ├── commands3.txt
+│           ├── commands4.txt
+│           └── commands5.txt
+│
+├── mininet/                         # Arranque de la emulación
+│   └── start_int1.0.sh
+│
+├── scripts/                         # Scripts auxiliares
+│   ├── usar_escenario.sh
+│   ├── monitor_link.py
+│   └── watchdog_completo.sh
+│
+├── collector/                       # Colector de reportes INT
+│   └── int_collector_influx.py
+│
+└── wireshark/                       # Disector de reportes INT para Wireshark
+    └── int_report.lua
+```
 
-P4 implementation of INT
-------
-This repository contains P4 code implementing the INT data plane functionality. Initially the P4 INT code was developped only for bmv2 but later on it was also adapted for Tofino switches. 
-In this repository, we are trying maintain compatibility both with bmv2 and Tofino switches. Limitations of both platforms impacted this codebase.
+Los escenarios de red se encuentran separados de la implementación P4. Cada escenario contiene su propia topología (`topo.txt`) y los ficheros `commands` necesarios para configurar las tablas de los switches correspondientes.
 
-Two versions of INT are currently available:
-- `p4src/int_v0.4/` - version 0.4 of the INT protocol; compatible with the INT implementation contained in the ONOS network operating system; INT version 0.4 documentation is not longer available on p4.org; no longer used and maintained;
-- `p4src/int_v1.0/` - version 1.0 of the INT protocol; currently the most tested version of the INT protocol;
+## Requirements
 
-Future plans nclude implementating of the INT specification version 2.0.
+Para la ejecución y análisis del prototipo se utilizan las siguientes herramientas:
 
-Note: All INT implementation use 64-bit ingress and egress timestamps (instead of 32-bit timestamps defined in INT specification documents).
+- [P4](https://p4.org/) / P4_16
+- [BMv2](https://github.com/p4lang/behavioral-model) (`simple_switch` y `simple_switch_CLI`)
+- [Mininet](https://mininet.org/)
+- Python 3
+- [InfluxDB](https://www.influxdata.com/) 1.8.x
+- [Grafana](https://grafana.com/)
+- [Wireshark](https://www.wireshark.org/) con soporte para plugins Lua
+- Docker, utilizado para el despliegue de algunos componentes del entorno
 
+## Quick start
 
-Supported dataplane programmable platforms
------
-This repository contains P4 code compatible with bmv2-mininet and Tofino (see `./p4src`) as well as other software specific for particular platform:
-- [bmv2-mininet](platforms/bmv2-mininet/README.md) - p4app tool to run INT code within mininet-bmv2 network topology located in `platforms/bmv2-mininet/`
-- [Tofino](platforms/tofino/README.md) - additional helper scripts located in `platforms/tofino/` to run and configure INT node deployed using Tofino-switch 
+### 1. Seleccionar el escenario
 
-Please use links above for detailed documentation how to run and configure INT P4 code for those platforms (these are readme suppages).
+El escenario que se desea utilizar puede seleccionarse mediante el script `usar_escenario.sh`.
 
-Other useful INT software components
-----
-- [int-collector](https://github.com/GEANT-DataPlaneProgramming/int-collector) for gathering INT reports with monitored flow measurments from one or more INT sink nodes and converting reports into InfluxDB line-protocol messages
-- [int-analytics](https://github.com/GEANT-DataPlaneProgramming/int-analytics) containing InfluxDB as main DB for INT measurements as well as visualisation tools like Grafana
+Para utilizar la topología *leafspine*:
 
-![The INT monitoring of the int-p4app network flow ](docs/int-p4app-visualisation.png)
+```bash
+./scripts/usar_escenario.sh leafspine
+```
 
+Para utilizar la topología original de tres switches:
 
-Contact
----------
-int-discuss@lists.geant.org
+```bash
+./scripts/usar_escenario.sh original
+```
 
+Cada escenario contiene su propia definición de topología y los comandos necesarios para configurar las tablas de los switches.
 
+### 2. Arrancar la emulación
+
+Una vez seleccionado el escenario:
+
+```bash
+sudo bash mininet/start_int1.0.sh
+```
+
+Durante la inicialización se crea la topología correspondiente en Mininet y se ejecutan los switches BMv2.
+
+Las reglas de configuración de los switches, incluyendo las reglas de reenvío y la configuración de INT, se cargan a partir de los ficheros incluidos en:
+
+```text
+escenarios/<escenario>/commands/
+```
+
+### 3. Generar tráfico
+
+Una vez iniciada la red, puede generarse tráfico entre los hosts desde la consola de Mininet. Por ejemplo:
+
+```bash
+mininet> h1 ping -c 3 h2
+```
+
+El tráfico configurado como monitorizable será procesado por los nodos INT correspondientes.
+
+### 4. Consultar los reportes INT
+
+Los reportes INT generados por el nodo *sink* pueden analizarse mediante diferentes mecanismos:
+
+- Recepción y procesamiento mediante `collector/int_collector_influx.py`.
+- Almacenamiento de los datos de telemetría en InfluxDB.
+- Visualización de los datos almacenados mediante Grafana.
+- Captura directa del tráfico de reportes y análisis mediante Wireshark utilizando el disector incluido en `wireshark/int_report.lua`.
+
+### 5. Monitorización y recuperación ante fallos
+
+En el escenario *leafspine* se incluyen scripts adicionales para monitorizar el estado de los enlaces y actuar sobre las reglas de reenvío cuando se detecta un fallo.
+
+El script principal de monitorización puede ejecutarse mediante:
+
+```bash
+python3 scripts/monitor_link.py
+```
+
+También se incluye `watchdog_completo.sh` para la supervisión de los componentes utilizados en el entorno de monitorización.
+
+## Features implemented
+
+Las principales funcionalidades incorporadas o modificadas durante el desarrollo del TFM son:
+
+- **Soporte para tráfico ICMP**, no contemplado en la implementación de partida.
+- **Rediseño del mecanismo de extracción de metadatos INT acumulados**, permitiendo procesar de forma dinámica la información correspondiente a los saltos anteriores.
+- **Escenario de red leaf-spine de cinco switches**, con caminos redundantes.
+- **Mecanismo de tolerancia a fallos**, basado en reglas de prioridad y recuperación automática mediante un script de monitorización.
+- **Políticas de reenvío en función del host de origen**, utilizadas para seleccionar diferentes caminos a través de la topología.
+- **Extensión de la implementación INT con el campo `pkt_len`**, que permite registrar el tamaño del paquete observado en cada nodo durante su recorrido.
+- **Corrección del cálculo de `hop_latency`** en el nodo *sink*, evitando los valores anómalos observados durante las pruebas.
+- **Adaptación del colector de telemetría**, incluyendo el procesamiento de la información añadida durante el desarrollo y su almacenamiento en InfluxDB.
+- **Disector de Wireshark para reportes INT**, utilizado para facilitar la interpretación directa de la información de telemetría.
+- **Visualización mediante Grafana**, incluyendo la representación de información obtenida a partir de los reportes INT.
+
+## Known issues
+
+- **Tráfico TCP**: aunque la implementación de partida ya incluía el parseo de tráfico TCP y durante el trabajo se configuró su selección como tráfico monitorizable, las pruebas realizadas mostraron que la instrumentación mediante INT no se aplicaba de forma fiable a los segmentos de datos TCP. La causa raíz no pudo determinarse de forma concluyente, por lo que su soporte completo queda como línea de trabajo futura.
+
+## Author
+
+**Belén María Iniesta Tejera**  
+Trabajo Fin de Máster  
+Máster Universitario en Ingeniería de Redes y Servicios Telemáticos  
+Universidad Politécnica de Madrid

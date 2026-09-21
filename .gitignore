@@ -1,0 +1,8 @@
+int.p4app/
+__pycache__/
+*.pyc
+*.log
+*.pcap
+.vscode/
+*.swp
+.DS_Store

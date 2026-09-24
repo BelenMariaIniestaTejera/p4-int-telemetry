@@ -75,20 +75,35 @@ Para la ejecución y análisis del prototipo se utilizan las siguientes herramie
 
 ## Inicio rápido
 
+### 0. Arrancar los servicios de InfluxDB y Grafana
+
+Antes de arrancar la emulación, es necesario que InfluxDB y Grafana estén en ejecución:
+
+```bash
+docker start influxdb
+docker start grafana
+```
+
 ### 1. Seleccionar el escenario
 
-El escenario que se desea utilizar puede seleccionarse mediante el script `usar_escenario.sh`.
+El escenario que se desea utilizar puede seleccionarse mediante el script `usar_escenario.sh`, ejecutado desde la raíz del repositorio.
 
 Para utilizar la topología *leafspine*:
 
 ```bash
-./scripts/usar_escenario.sh leafspine
+bash usar_escenario.sh leafspine
 ```
 
 Para utilizar la topología original de tres switches:
 
 ```bash
-./scripts/usar_escenario.sh original
+bash usar_escenario.sh original
+```
+
+Para consultar los escenarios disponibles:
+
+```bash
+bash usar_escenario.sh --listar
 ```
 
 Cada escenario contiene su propia definición de topología y los comandos necesarios para configurar las tablas de los switches.
@@ -101,13 +116,9 @@ Una vez seleccionado el escenario:
 sudo bash mininet/start_int1.0.sh
 ```
 
-Durante la inicialización se crea la topología correspondiente en Mininet y se ejecutan los switches BMv2.
+Durante la inicialización se crea la topología correspondiente en Mininet y se ejecutan los switches BMv2. Las reglas de configuración de los switches, incluyendo las reglas de reenvío y la configuración de INT, se cargan automáticamente a partir del escenario activo.
 
-Las reglas de configuración de los switches, incluyendo las reglas de reenvío y la configuración de INT, se cargan a partir de los ficheros incluidos en:
-
-```text
-escenarios/<escenario>/commands/
-```
+El colector de telemetría (`collector/int_collector_influx.py`) se arranca también de forma automática durante este proceso, conectándose a InfluxDB.
 
 ### 3. Generar tráfico
 
@@ -123,22 +134,19 @@ El tráfico configurado como monitorizable será procesado por los nodos INT cor
 
 Los reportes INT generados por el nodo *sink* pueden analizarse mediante diferentes mecanismos:
 
-- Recepción y procesamiento mediante `collector/int_collector_influx.py`.
 - Almacenamiento de los datos de telemetría en InfluxDB.
 - Visualización de los datos almacenados mediante Grafana.
-- Captura directa del tráfico de reportes y análisis mediante Wireshark utilizando el disector incluido en `wireshark/int_report.lua`.
+- Captura directa del tráfico de reportes (puerto UDP 6000) y análisis mediante Wireshark, utilizando el disector incluido en `wireshark/int_report.lua`.
 
 ### 5. Monitorización y recuperación ante fallos
 
 En el escenario *leafspine* se incluyen scripts adicionales para monitorizar el estado de los enlaces y actuar sobre las reglas de reenvío cuando se detecta un fallo.
 
-El script principal de monitorización puede ejecutarse mediante:
+El script principal de monitorización puede ejecutarse, dentro del entorno de emulación, mediante:
 
 ```bash
 python3 scripts/monitor_link.py
 ```
-
-También se incluye `watchdog_completo.sh` para la supervisión de los componentes utilizados en el entorno de monitorización.
 
 ## Funcionalidades implementadas
 
